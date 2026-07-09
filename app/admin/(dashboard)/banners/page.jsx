@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabaseBrowser";
 import { Plus, Save, Trash2 } from "lucide-react";
 
@@ -10,6 +10,8 @@ export default function BannersPage() {
   const [promoBanners, setPromoBanners] = useState([]);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const idsOriginaisHero = useRef([]);
+  const idsOriginaisPromo = useRef([]);
 
   async function carregar() {
     const [hero, promo] = await Promise.all([
@@ -18,6 +20,8 @@ export default function BannersPage() {
     ]);
     setHeroBanners(hero.data?.length ? hero.data : [{ ativo: true }]);
     setPromoBanners(promo.data?.length ? promo.data : [{ ativo: true }]);
+    idsOriginaisHero.current = (hero.data || []).map((b) => b.id);
+    idsOriginaisPromo.current = (promo.data || []).map((b) => b.id);
   }
 
   useEffect(() => { carregar(); }, []);
@@ -50,12 +54,19 @@ export default function BannersPage() {
     setSaving(true);
     setMsg("");
     try {
+      const idsManter = heroBanners.filter((b) => b.id).map((b) => b.id);
+      const idsRemover = idsOriginaisHero.current.filter((id) => !idsManter.includes(id));
+      for (const id of idsRemover) {
+        await supabase.from("banners_hero").delete().eq("id", id);
+      }
+
       for (let i = 0; i < heroBanners.length; i++) {
         const b = heroBanners[i];
+        const payload = { ...b, ordem: i };
         if (b.id) {
-          await supabase.from("banners_hero").update({ ...b, ordem: i }).eq("id", b.id);
+          await supabase.from("banners_hero").update(payload).eq("id", b.id);
         } else {
-          await supabase.from("banners_hero").insert({ ...b, ordem: i });
+          await supabase.from("banners_hero").insert(payload);
         }
       }
       setMsg("Banners hero salvos!");
@@ -70,12 +81,19 @@ export default function BannersPage() {
     setSaving(true);
     setMsg("");
     try {
+      const idsManter = promoBanners.filter((b) => b.id).map((b) => b.id);
+      const idsRemover = idsOriginaisPromo.current.filter((id) => !idsManter.includes(id));
+      for (const id of idsRemover) {
+        await supabase.from("banners_promocionais").delete().eq("id", id);
+      }
+
       for (let i = 0; i < promoBanners.length; i++) {
         const b = promoBanners[i];
+        const payload = { ...b, ordem: i };
         if (b.id) {
-          await supabase.from("banners_promocionais").update({ ...b, ordem: i }).eq("id", b.id);
+          await supabase.from("banners_promocionais").update(payload).eq("id", b.id);
         } else {
-          await supabase.from("banners_promocionais").insert({ ...b, ordem: i });
+          await supabase.from("banners_promocionais").insert(payload);
         }
       }
       setMsg("Banners promocionais salvos!");
