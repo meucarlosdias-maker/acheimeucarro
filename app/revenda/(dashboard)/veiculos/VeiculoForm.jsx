@@ -1,29 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseBrowser";
 
 const CATEGORIAS = ["Sedã", "Hatch", "SUV", "Picape", "Utilitário"];
 const COMBUSTIVEIS = ["Flex", "Gasolina", "Etanol", "Diesel", "Elétrico", "Híbrido"];
 const CAMBIOS = ["Manual", "Automático", "Automatizado"];
-const CORES = [
-  "Branco", "Preto", "Prata", "Cinza", "Vermelho", "Azul", "Verde",
-  "Marrom", "Bege", "Amarelo", "Laranja", "Roxo", "Dourado",
-];
+
 
 export default function VeiculoForm({ revendaId, veiculo }) {
   const router = useRouter();
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState("");
-  const [marcas, setMarcas] = useState([]);
-  const [modelos, setModelos] = useState([]);
-
   const [form, setForm] = useState({
     revenda_id: revendaId,
-    marca_id: veiculo?.marca_id || "",
-    modelo_id: veiculo?.modelo_id || "",
+    marca_nome: veiculo?.marca?.nome || "",
+    modelo_nome: veiculo?.modelo?.nome || "",
     versao: veiculo?.versao || "",
     ano_fab: veiculo?.ano_fab || new Date().getFullYear(),
     ano_modelo: veiculo?.ano_modelo || new Date().getFullYear(),
@@ -42,18 +36,6 @@ export default function VeiculoForm({ revendaId, veiculo }) {
   });
 
   const [novaFoto, setNovaFoto] = useState("");
-
-  useEffect(() => {
-    supabase.from("marcas").select("id, nome").order("nome").then(({ data }) => setMarcas(data || []));
-  }, []);
-
-  useEffect(() => {
-    if (form.marca_id) {
-      supabase.from("modelos").select("id, nome").eq("marca_id", form.marca_id).order("nome").then(({ data }) => setModelos(data || []));
-    } else {
-      setModelos([]);
-    }
-  }, [form.marca_id]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -76,17 +58,31 @@ export default function VeiculoForm({ revendaId, veiculo }) {
     }));
   }
 
+  async function findOrCreate(tabela, dados) {
+    const { data: existente } = await supabase.from(tabela).select("id").match(dados).maybeSingle();
+    if (existente) return existente.id;
+    const { data: novo, error } = await supabase.from(tabela).insert(dados).select("id").single();
+    if (error) throw error;
+    return novo.id;
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
     setErro("");
 
     try {
+      const marca_id = await findOrCreate("marcas", { nome: form.marca_nome.trim() });
+      const modelo_id = await findOrCreate("modelos", { nome: form.modelo_nome.trim(), marca_id });
+
       let veiculoId = veiculo?.id;
+      const slugBase = `${form.marca_nome}-${form.modelo_nome}`
+        .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       const payload = {
         revenda_id: revendaId,
-        marca_id: form.marca_id,
-        modelo_id: form.modelo_id,
+        marca_id,
+        modelo_id,
         versao: form.versao,
         ano_fab: Number(form.ano_fab),
         ano_modelo: Number(form.ano_modelo),
@@ -100,7 +96,7 @@ export default function VeiculoForm({ revendaId, veiculo }) {
         descricao: form.descricao,
         video_url: form.video_url,
         status: form.status,
-        slug: form.slug || `${form.marca_id}-${form.modelo_id}-${Date.now()}`,
+        slug: form.slug || `${slugBase}-${Date.now()}`,
       };
 
       if (veiculoId) {
@@ -140,17 +136,11 @@ export default function VeiculoForm({ revendaId, veiculo }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-600 text-ink block mb-1">Marca *</label>
-            <select name="marca_id" value={form.marca_id} onChange={handleChange} required className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange">
-              <option value="">Selecione...</option>
-              {marcas.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
-            </select>
+            <input name="marca_nome" value={form.marca_nome} onChange={handleChange} placeholder="Ex: Volkswagen" required className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange" />
           </div>
           <div>
             <label className="text-sm font-600 text-ink block mb-1">Modelo *</label>
-            <select name="modelo_id" value={form.modelo_id} onChange={handleChange} required className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange">
-              <option value="">Selecione...</option>
-              {modelos.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
-            </select>
+            <input name="modelo_nome" value={form.modelo_nome} onChange={handleChange} placeholder="Ex: Gol" required className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange" />
           </div>
           <div>
             <label className="text-sm font-600 text-ink block mb-1">Versão</label>
@@ -195,10 +185,7 @@ export default function VeiculoForm({ revendaId, veiculo }) {
           </div>
           <div>
             <label className="text-sm font-600 text-ink block mb-1">Cor</label>
-            <select name="cor" value={form.cor} onChange={handleChange} className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange">
-              <option value="">Selecione...</option>
-              {CORES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <input name="cor" value={form.cor} onChange={handleChange} placeholder="Ex: Vermelho" className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange" />
           </div>
           <div>
             <label className="text-sm font-600 text-ink block mb-1">Portas</label>

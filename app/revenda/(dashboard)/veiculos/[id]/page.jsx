@@ -15,7 +15,7 @@ export default async function EditarVeiculoPage({ params }) {
 
   const { data: veiculo } = await supabase
     .from("veiculos")
-    .select("*, fotos:veiculo_fotos(url, ordem)")
+    .select("*, marca:marcas(nome), modelo:modelos(nome), fotos:veiculo_fotos(url, ordem)")
     .eq("id", params.id)
     .eq("revenda_id", revenda.id)
     .single();
