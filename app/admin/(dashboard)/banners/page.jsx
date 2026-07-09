@@ -46,24 +46,18 @@ export default function BannersPage() {
     setPromoBanners((prev) => prev.filter((_, i) => i !== idx));
   }
 
-  function limparBanner(b) {
-    const { id, created_at, ...limpo } = b;
-    return limpo;
-  }
-
-  async function salvarHero() {
+  async function salvar(tipo, banners) {
     setSaving(true);
     setMsg("");
     try {
-      await supabase.from("banners_hero").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-
-      for (let i = 0; i < heroBanners.length; i++) {
-        const { error } = await supabase
-          .from("banners_hero")
-          .insert({ ...limparBanner(heroBanners[i]), ordem: i });
-        if (error) throw error;
-      }
-      setMsg("Banners hero salvos!");
+      const res = await fetch("/api/admin/banners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo, banners }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setMsg(tipo === "hero" ? "Banners hero salvos!" : "Banners promocionais salvos!");
       carregar();
     } catch (err) {
       setMsg("Erro: " + err.message);
@@ -71,25 +65,8 @@ export default function BannersPage() {
     setSaving(false);
   }
 
-  async function salvarPromo() {
-    setSaving(true);
-    setMsg("");
-    try {
-      await supabase.from("banners_promocionais").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-
-      for (let i = 0; i < promoBanners.length; i++) {
-        const { error } = await supabase
-          .from("banners_promocionais")
-          .insert({ ...limparBanner(promoBanners[i]), ordem: i });
-        if (error) throw error;
-      }
-      setMsg("Banners promocionais salvos!");
-      carregar();
-    } catch (err) {
-      setMsg("Erro: " + err.message);
-    }
-    setSaving(false);
-  }
+  async function salvarHero() { salvar("hero", heroBanners); }
+  async function salvarPromo() { salvar("promo", promoBanners); }
 
   const camposHero = [
     { campo: "imagem_url", label: "URL da Imagem", type: "text", placeholder: "https://..." },
