@@ -1,0 +1,31 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.road-track {
+  position: relative;
+  overflow: hidden;
+}
+.car-drive {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: -12%;
+  animation: drive 7s linear infinite;
+}
+@keyframes drive {
+  0% {
+    left: -12%;
+  }
+  100% {
+    left: 104%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .car-drive {
+    animation: none;
+    left: 42%;
+  }
+}
