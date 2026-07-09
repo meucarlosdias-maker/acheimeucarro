@@ -47,7 +47,9 @@ export default async function RevendasPage() {
               return (
                 <tr key={r.id} className="border-b border-line last:border-0 hover:bg-sand/50 transition-colors">
                   <td className="px-4 py-3">
-                    <p className="font-600 text-ink">{r.nome}</p>
+                    <Link href={`/admin/revendas/${r.id}`} className="font-600 text-ink hover:text-brand-orange transition-colors">
+                      {r.nome}
+                    </Link>
                     <p className="text-xs text-muted">{r.email || "—"}</p>
                   </td>
                   <td className="px-4 py-3 text-muted">{r.cidade?.nome}/{r.cidade?.uf}</td>
@@ -72,7 +74,7 @@ export default async function RevendasPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link href={`/admin/revendas/${r.id}`} className="inline-flex items-center gap-1 text-sm font-500 text-brand-orange hover:underline">
+                    <Link href={`/admin/revendas/${r.id}/editar`} className="inline-flex items-center gap-1 text-sm font-500 text-brand-orange hover:underline">
                       <Edit size={14} /> Editar
                     </Link>
                   </td>
