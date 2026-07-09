@@ -87,7 +87,7 @@ export default function CadastroRevendaPage() {
           </div>
           <h1 className="font-display font-700 text-xl text-navy-deep mb-2">Cadastro enviado!</h1>
           <p className="text-sm text-muted mb-6">
-            Sua solicitação foi recebida. O administrador vai analisar e liberar seu acesso em breve.
+            Sua revenda foi cadastrada com sucesso! Agora é só fazer login e começar a anunciar.
           </p>
           <button onClick={() => router.push("/revenda/login")} className="font-600 text-sm px-6 py-2.5 rounded-lg bg-navy-deep text-white hover:opacity-90 transition-opacity">
             Ir para o login
