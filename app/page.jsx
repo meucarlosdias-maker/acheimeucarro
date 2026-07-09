@@ -3,7 +3,7 @@ import HomeClient from "@/components/HomeClient";
 
 const CIDADE_SLUG = "joinville-sc";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [veiculos, marcas, banners, bannersPromo] = await Promise.all([
