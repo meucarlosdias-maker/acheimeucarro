@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabaseBrowser";
-import { Plus, Save, Trash2, GripVertical } from "lucide-react";
+import { Plus, Save, Trash2 } from "lucide-react";
 
 export default function BannersPage() {
   const supabase = createClient();
@@ -16,8 +16,8 @@ export default function BannersPage() {
       supabase.from("banners_hero").select("*").order("ordem"),
       supabase.from("banners_promocionais").select("*").order("ordem"),
     ]);
-    setHeroBanners(hero.data || []);
-    setPromoBanners(promo.data || []);
+    setHeroBanners(hero.data?.length ? hero.data : [{ ativo: true }]);
+    setPromoBanners(promo.data?.length ? promo.data : [{ ativo: true }]);
   }
 
   useEffect(() => { carregar(); }, []);
@@ -36,6 +36,14 @@ export default function BannersPage() {
       next[idx] = { ...next[idx], [campo]: valor };
       return next;
     });
+  }
+
+  function removerHero(idx) {
+    setHeroBanners((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  function removerPromo(idx) {
+    setPromoBanners((prev) => prev.filter((_, i) => i !== idx));
   }
 
   async function salvarHero() {
@@ -106,7 +114,14 @@ export default function BannersPage() {
       {/* HERO BANNERS */}
       <section className="bg-white rounded-xl border border-line p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display font-700 text-lg text-navy-deep">Banners Hero (3 banners em rotação)</h2>
+          <div>
+            <h2 className="font-display font-700 text-lg text-navy-deep">Banners Hero</h2>
+            <p className="text-xs text-muted mt-0.5">
+              {heroBanners.length === 1
+                ? "1 banner ativo — exibição estática na home"
+                : `${heroBanners.length} banners ativos — rotação automática na home`}
+            </p>
+          </div>
           <button
             onClick={salvarHero}
             disabled={saving}
@@ -116,13 +131,18 @@ export default function BannersPage() {
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {heroBanners.map((banner, idx) => (
             <div key={banner.id || idx} className="border border-line rounded-xl p-4 bg-sand/30">
-              <div className="flex items-center gap-2 mb-3">
-                <GripVertical size={16} className="text-muted" />
+              <div className="flex items-center justify-between mb-3">
                 <span className="font-600 text-sm text-ink">Banner {idx + 1}</span>
-                {!banner.id && <span className="text-xs text-brand-orange font-600">(novo)</span>}
+                <button
+                  type="button"
+                  onClick={() => removerHero(idx)}
+                  className="flex items-center gap-1 text-xs font-500 text-red-600 hover:text-red-700 transition-colors"
+                >
+                  <Trash2 size={14} /> Remover
+                </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {camposHero.map((c) => (
@@ -142,20 +162,21 @@ export default function BannersPage() {
           ))}
         </div>
 
-        {heroBanners.length < 3 && (
-          <button
-            onClick={() => setHeroBanners((prev) => [...prev, { ativo: true }])}
-            className="mt-4 flex items-center gap-2 text-sm font-500 text-brand-orange hover:underline"
-          >
-            <Plus size={16} /> Adicionar banner hero
-          </button>
-        )}
+        <button
+          onClick={() => setHeroBanners((prev) => [...prev, { ativo: true }])}
+          className="mt-4 flex items-center gap-2 text-sm font-500 text-brand-orange hover:underline"
+        >
+          <Plus size={16} /> Adicionar banner hero
+        </button>
       </section>
 
       {/* BANNERS PROMOCIONAIS */}
       <section className="bg-white rounded-xl border border-line p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display font-700 text-lg text-navy-deep">Banners Promocionais (2 banners menores)</h2>
+          <div>
+            <h2 className="font-display font-700 text-lg text-navy-deep">Banners Promocionais</h2>
+            <p className="text-xs text-muted mt-0.5">Banners menores exibidos abaixo do hero</p>
+          </div>
           <button
             onClick={salvarPromo}
             disabled={saving}
@@ -165,12 +186,18 @@ export default function BannersPage() {
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {promoBanners.map((banner, idx) => (
             <div key={banner.id || idx} className="border border-line rounded-xl p-4 bg-sand/30">
-              <div className="flex items-center gap-2 mb-3">
-                <GripVertical size={16} className="text-muted" />
+              <div className="flex items-center justify-between mb-3">
                 <span className="font-600 text-sm text-ink">Banner Promocional {idx + 1}</span>
+                <button
+                  type="button"
+                  onClick={() => removerPromo(idx)}
+                  className="flex items-center gap-1 text-xs font-500 text-red-600 hover:text-red-700 transition-colors"
+                >
+                  <Trash2 size={14} /> Remover
+                </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {camposPromo.map((c) => (
@@ -190,14 +217,12 @@ export default function BannersPage() {
           ))}
         </div>
 
-        {promoBanners.length < 2 && (
-          <button
-            onClick={() => setPromoBanners((prev) => [...prev, { ativo: true }])}
-            className="mt-4 flex items-center gap-2 text-sm font-500 text-brand-orange hover:underline"
-          >
-            <Plus size={16} /> Adicionar banner promocional
-          </button>
-        )}
+        <button
+          onClick={() => setPromoBanners((prev) => [...prev, { ativo: true }])}
+          className="mt-4 flex items-center gap-2 text-sm font-500 text-brand-orange hover:underline"
+        >
+          <Plus size={16} /> Adicionar banner promocional
+        </button>
       </section>
     </div>
   );
