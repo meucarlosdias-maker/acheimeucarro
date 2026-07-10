@@ -2,7 +2,7 @@ import { getVeiculoPorSlug, getVeiculosPorModelo } from "@/lib/queries";
 import {
   ChevronLeft, Gauge, Calendar, Fuel, Car, MapPin, Phone, Mail,
   MessageCircle, Globe, Instagram, Facebook, Clock, Heart, Share2,
-  CheckCircle, ShieldCheck, ArrowRight,
+  CheckCircle, ArrowRight, Zap, Palette, LayoutGrid,
 } from "lucide-react";
 import Link from "next/link";
 import ImageGallery from "./ImageGallery";
@@ -27,10 +27,12 @@ export default async function CarroPage({ params }) {
     return (
       <div className="min-h-screen bg-sand flex items-center justify-center">
         <div className="text-center max-w-md px-6">
-          <Car size={48} className="text-muted mx-auto mb-4" />
-          <h1 className="font-display font-700 text-xl text-navy-deep mb-2">Veículo não encontrado</h1>
-          <p className="text-sm text-muted mb-6">Este veículo pode ter sido vendido ou está indisponível.</p>
-          <Link href="/" className="inline-flex items-center gap-2 font-600 text-sm px-5 py-2.5 rounded-lg bg-navy-deep text-white hover:opacity-90 transition-opacity">
+          <div className="w-16 h-16 rounded-2xl bg-navy-deep/5 flex items-center justify-center mx-auto mb-6">
+            <Car size={32} className="text-navy-deep/40" />
+          </div>
+          <h1 className="font-display font-700 text-2xl text-navy-deep mb-2">Veículo não encontrado</h1>
+          <p className="text-sm text-muted mb-8 leading-relaxed">Este veículo pode ter sido vendido ou está indisponível no momento.</p>
+          <Link href="/" className="inline-flex items-center gap-2 font-600 text-sm px-6 py-3 rounded-xl bg-navy-deep text-white hover:bg-navy-mid transition-all duration-200">
             <ChevronLeft size={16} /> Voltar para Home
           </Link>
         </div>
@@ -44,93 +46,136 @@ export default async function CarroPage({ params }) {
 
   return (
     <div className="min-h-screen bg-sand">
-      {/* Header */}
-      <header className="bg-white border-b border-line sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-display font-800 text-xs bg-brand-orange text-white">AM</div>
+      <header className="bg-white/80 backdrop-blur-md border-b border-line sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center font-display font-800 text-sm bg-navy-deep text-white group-hover:bg-brand-orange transition-colors duration-300">
+              AM
+            </div>
             <span className="font-display font-700 text-sm text-navy-deep hidden sm:inline">Achei Meu Carro</span>
           </Link>
-          <Link href="/" className="text-sm text-muted hover:text-ink transition-colors flex items-center gap-1">
-            <ChevronLeft size={14} /> Voltar
-          </Link>
+          <nav className="flex items-center gap-4">
+            <Link href="/carros" className="text-sm text-muted hover:text-ink transition-colors hidden sm:inline">
+              Todos os veículos
+            </Link>
+            <Link href="/" className="flex items-center gap-1.5 text-sm font-500 text-muted hover:text-navy-deep transition-colors px-4 py-2 rounded-lg border border-line hover:border-navy-deep/20">
+              <ChevronLeft size={14} /> Voltar
+            </Link>
+          </nav>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* === COLUNA PRINCIPAL === */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* GALERIA */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+          <div className="lg:col-span-7 xl:col-span-8 space-y-6 sm:space-y-8">
             <ImageGallery fotos={fotos} videoUrl={veiculo.video_url} titulo={`${veiculo.marca?.nome} ${veiculo.modelo?.nome}`} />
 
-            {/* SPECS GRID */}
-            <div className="bg-white rounded-xl border border-line p-5">
-              <h2 className="font-display font-700 text-base text-navy-deep mb-4">Informações do Veículo</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <SpecCard icon={<Calendar size={18} />} label="Ano" value={`${veiculo.ano_fab}/${veiculo.ano_modelo}`} />
-                <SpecCard icon={<Gauge size={18} />} label="Quilometragem" value={`${Number(veiculo.km).toLocaleString("pt-BR")} km`} />
-                <SpecCard icon={<Fuel size={18} />} label="Combustível" value={veiculo.combustivel || "—"} />
-                <SpecCard icon={<Car size={18} />} label="Câmbio" value={veiculo.cambio || "—"} />
-                {veiculo.cor && <SpecCard icon={<div className="w-4 h-4 rounded-full border border-muted" style={{ backgroundColor: veiculo.cor.toLowerCase() }} />} label="Cor" value={veiculo.cor} />}
-                {veiculo.categoria && <SpecCard icon={<ShieldCheck size={18} />} label="Categoria" value={veiculo.categoria} />}
-                {veiculo.portas && <SpecCard icon={<span className="font-700 text-sm">P</span>} label="Portas" value={`${veiculo.portas} portas`} />}
+            <div className="lg:hidden space-y-4">
+              <div>
+                <p className="text-xs text-muted uppercase tracking-widest font-600">{veiculo.marca?.nome}</p>
+                <h1 className="font-display font-700 text-2xl text-navy-deep leading-tight mt-1">
+                  {veiculo.modelo?.nome}{veiculo.versao ? ` ${veiculo.versao}` : ""}
+                </h1>
               </div>
+              <p className="font-display font-800 text-4xl text-brand-orange">{formatPreco(veiculo.preco)}</p>
+              {revenda?.whatsapp ? (
+                <a
+                  href={`https://wa.me/${revenda.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
+                    `Olá! Tenho interesse no ${veiculo.marca?.nome} ${veiculo.modelo?.nome}${veiculo.versao ? ` ${veiculo.versao}` : ""} (${formatPreco(veiculo.preco)}).`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full font-700 text-sm py-3.5 rounded-xl bg-brand-orange text-white hover:bg-brand-orangeDark transition-all duration-200 shadow-lg shadow-brand-orange/25"
+                >
+                  <MessageCircle size={20} /> Tenho Interesse
+                </a>
+              ) : revenda?.telefone ? (
+                <a
+                  href={`tel:${revenda.telefone}`}
+                  className="flex items-center justify-center gap-2 w-full font-700 text-sm py-3.5 rounded-xl bg-brand-orange text-white hover:bg-brand-orangeDark transition-all duration-200 shadow-lg shadow-brand-orange/25"
+                >
+                  <Phone size={20} /> Tenho Interesse
+                </a>
+              ) : null}
             </div>
 
-            {/* DESCRIÇÃO */}
-            {veiculo.descricao && (
-              <div className="bg-white rounded-xl border border-line p-6">
-                <h2 className="font-display font-700 text-base text-navy-deep mb-3">Descrição do Veículo</h2>
-                <p className="text-sm text-ink leading-relaxed whitespace-pre-line">{veiculo.descricao}</p>
+            <section className="bg-white rounded-2xl border border-line p-5 sm:p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="w-1 h-5 bg-brand-orange rounded-full" />
+                <h2 className="font-display font-700 text-base text-navy-deep">Especificações</h2>
               </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <SpecCard icon={<Calendar size={16} />} label="Ano" value={`${veiculo.ano_fab}/${veiculo.ano_modelo}`} />
+                <SpecCard icon={<Gauge size={16} />} label="Quilometragem" value={`${Number(veiculo.km).toLocaleString("pt-BR")} km`} />
+                <SpecCard icon={<Fuel size={16} />} label="Combustível" value={veiculo.combustivel || "—"} />
+                <SpecCard icon={<Zap size={16} />} label="Câmbio" value={veiculo.cambio || "—"} />
+                {veiculo.cor && <SpecCard icon={<Palette size={16} />} label="Cor" value={veiculo.cor} />}
+                {veiculo.categoria && <SpecCard icon={<LayoutGrid size={16} />} label="Categoria" value={veiculo.categoria} />}
+                {veiculo.portas && <SpecCard icon={<Car size={16} />} label="Portas" value={`${veiculo.portas}`} />}
+              </div>
+            </section>
+
+            {veiculo.descricao && (
+              <section className="bg-white rounded-2xl border border-line p-6 sm:p-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-5 bg-brand-orange rounded-full" />
+                  <h2 className="font-display font-700 text-base text-navy-deep">Sobre este veículo</h2>
+                </div>
+                <div className="prose prose-sm max-w-none text-ink leading-relaxed">
+                  <p className="whitespace-pre-line text-[15px] leading-7">{veiculo.descricao}</p>
+                </div>
+              </section>
             )}
 
-            {/* CARROS DO MESMO MODELO */}
             {relacionados.length > 0 && (
-              <div className="bg-white rounded-xl border border-line p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-display font-700 text-base text-navy-deep">
-                    Outros {veiculo.modelo?.nome} disponíveis
-                  </h2>
-                  <span className="text-xs text-muted">{relacionados.length} veículo(s)</span>
+              <section className="bg-white rounded-2xl border border-line p-5 sm:p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-5 bg-brand-orange rounded-full" />
+                    <h2 className="font-display font-700 text-base text-navy-deep">
+                      Outros {veiculo.modelo?.nome}
+                    </h2>
+                  </div>
+                  <span className="text-xs font-500 text-muted bg-sand px-3 py-1 rounded-full">{relacionados.length} disponível(is)</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {relacionados.map((v) => (
                     <Link
                       key={v.id}
                       href={`/carros/${v.slug}`}
-                      className="flex gap-3 p-3 rounded-xl border border-line hover:bg-sand/50 transition-colors group"
+                      className="flex gap-4 p-3 rounded-xl border border-line hover:border-brand-orange/30 hover:bg-brand-orange/[0.02] transition-all duration-200 group"
                     >
-                      <div className="w-24 h-16 shrink-0 rounded-lg overflow-hidden bg-sand">
-                        <img src={fotoCapa(v)} alt="" className="w-full h-full object-cover" />
+                      <div className="w-28 h-20 shrink-0 rounded-lg overflow-hidden bg-sand">
+                        <img src={fotoCapa(v)} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       </div>
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-1 flex flex-col justify-center">
                         <p className="font-600 text-sm text-ink truncate">{v.marca?.nome} {v.modelo?.nome} {v.versao || ""}</p>
-                        <p className="text-xs text-muted">{v.ano_fab}/{v.ano_modelo} · {Number(v.km).toLocaleString("pt-BR")} km</p>
-                        <p className="font-700 text-sm text-brand-orange mt-1">{formatPreco(v.preco)}</p>
+                        <p className="text-xs text-muted mt-0.5">{v.ano_fab}/{v.ano_modelo} · {Number(v.km).toLocaleString("pt-BR")} km</p>
+                        <p className="font-700 text-sm text-brand-orange mt-1.5">{formatPreco(v.preco)}</p>
                       </div>
                     </Link>
                   ))}
                 </div>
-              </div>
+              </section>
             )}
           </div>
 
-          {/* === SIDEBAR === */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="lg:sticky lg:top-20 space-y-4">
-              {/* TÍTULO + PREÇO */}
-              <div className="bg-white rounded-xl border border-line p-6">
-                <p className="text-xs text-muted uppercase tracking-wide mb-1">{veiculo.marca?.nome}</p>
-                <h1 className="font-display font-700 text-xl text-navy-deep leading-tight mb-3">
-                  {veiculo.modelo?.nome} {veiculo.versao || ""}
+          <aside className="lg:col-span-5 xl:col-span-4">
+            <div className="lg:sticky lg:top-24 space-y-4 sm:space-y-5">
+              <div className="hidden lg:block bg-white rounded-2xl border border-line p-6 sm:p-7">
+                <p className="text-xs text-muted uppercase tracking-widest font-600">{veiculo.marca?.nome}</p>
+                <h1 className="font-display font-700 text-xl sm:text-2xl text-navy-deep leading-tight mt-1.5">
+                  {veiculo.modelo?.nome}{veiculo.versao ? ` ${veiculo.versao}` : ""}
                 </h1>
-                <p className="font-display font-800 text-3xl text-brand-orange">{formatPreco(veiculo.preco)}</p>
+                <div className="mt-4 pt-4 border-t border-line">
+                  <p className="text-xs text-muted mb-1">Preço</p>
+                  <p className="font-display font-800 text-3xl sm:text-4xl text-brand-orange tracking-tight">
+                    {formatPreco(veiculo.preco)}
+                  </p>
+                </div>
               </div>
 
-              {/* BOTÃO PRINCIPAL + AÇÕES SECUNDÁRIAS */}
-              <div className="bg-white rounded-xl border border-line p-6">
+              <div className="hidden lg:block bg-white rounded-2xl border border-line p-6">
                 {revenda?.whatsapp ? (
                   <a
                     href={`https://wa.me/${revenda.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
@@ -138,39 +183,38 @@ export default async function CarroPage({ params }) {
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full font-700 text-sm py-3.5 rounded-xl bg-brand-orange text-white hover:opacity-90 transition-opacity shadow-sm"
+                    className="flex items-center justify-center gap-2 w-full font-700 text-sm py-3.5 rounded-xl bg-brand-orange text-white hover:bg-brand-orangeDark transition-all duration-200 shadow-lg shadow-brand-orange/25"
                   >
                     <MessageCircle size={20} /> Tenho Interesse
                   </a>
                 ) : revenda?.telefone ? (
                   <a
                     href={`tel:${revenda.telefone}`}
-                    className="flex items-center justify-center gap-2 w-full font-700 text-sm py-3.5 rounded-xl bg-brand-orange text-white hover:opacity-90 transition-opacity shadow-sm"
+                    className="flex items-center justify-center gap-2 w-full font-700 text-sm py-3.5 rounded-xl bg-brand-orange text-white hover:bg-brand-orangeDark transition-all duration-200 shadow-lg shadow-brand-orange/25"
                   >
                     <Phone size={20} /> Tenho Interesse
                   </a>
                 ) : null}
 
-                <div className="flex items-center justify-center gap-4 mt-3">
-                  <button className="flex items-center gap-1.5 text-xs text-muted hover:text-red-500 transition-colors">
-                    <Heart size={16} /> Favoritar
+                <div className="flex items-center justify-center gap-6 mt-4">
+                  <button className="flex items-center gap-1.5 text-xs text-muted hover:text-red-400 transition-colors group">
+                    <Heart size={15} className="group-hover:scale-110 transition-transform" /> Favoritar
                   </button>
-                  <button className="flex items-center gap-1.5 text-xs text-muted hover:text-ink transition-colors">
-                    <Share2 size={16} /> Compartilhar
+                  <button className="flex items-center gap-1.5 text-xs text-muted hover:text-ink transition-colors group">
+                    <Share2 size={15} className="group-hover:scale-110 transition-transform" /> Compartilhar
                   </button>
                 </div>
               </div>
 
-              {/* VENDEDOR */}
-              <div className="bg-white rounded-xl border border-line p-6">
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-navy-deep text-white font-display font-800 text-sm flex items-center justify-center shrink-0">
+              <div className="bg-white rounded-2xl border border-line p-6 sm:p-7">
+                <div className="flex items-start gap-4 mb-5">
+                  <div className="w-14 h-14 rounded-2xl bg-navy-deep text-white font-display font-800 text-lg flex items-center justify-center shrink-0 shadow-md shadow-navy-deep/10">
                     {revenda?.nome?.charAt(0) || "R"}
                   </div>
-                  <div>
+                  <div className="pt-1">
                     <div className="flex items-center gap-1.5">
                       <p className="font-600 text-ink text-sm">{revenda?.nome || "Revenda parceira"}</p>
-                      <CheckCircle size={14} className="text-blue-500 shrink-0" />
+                      <CheckCircle size={14} className="text-green-500 shrink-0" />
                     </div>
                     <p className="text-xs text-muted flex items-center gap-1 mt-0.5">
                       <MapPin size={11} />
@@ -179,65 +223,77 @@ export default async function CarroPage({ params }) {
                   </div>
                 </div>
 
-                <div className="space-y-2 text-sm">
+                <div className="space-y-1 divide-y divide-line/50">
                   {revenda?.telefone && (
-                    <a href={`tel:${revenda.telefone}`} className="flex items-center gap-3 py-1.5 text-ink hover:text-brand-orange transition-colors">
-                      <Phone size={15} className="text-muted shrink-0" /> {revenda.telefone}
+                    <a href={`tel:${revenda.telefone}`} className="flex items-center gap-3 py-2.5 text-sm text-ink hover:text-brand-orange transition-colors group">
+                      <span className="w-8 h-8 rounded-lg bg-sand flex items-center justify-center group-hover:bg-brand-orange/10 transition-colors">
+                        <Phone size={14} className="text-muted" />
+                      </span>
+                      {revenda.telefone}
                     </a>
                   )}
                   {revenda?.email && (
-                    <a href={`mailto:${revenda.email}`} className="flex items-center gap-3 py-1.5 text-ink hover:text-brand-orange transition-colors">
-                      <Mail size={15} className="text-muted shrink-0" /> {revenda.email}
+                    <a href={`mailto:${revenda.email}`} className="flex items-center gap-3 py-2.5 text-sm text-ink hover:text-brand-orange transition-colors group">
+                      <span className="w-8 h-8 rounded-lg bg-sand flex items-center justify-center group-hover:bg-brand-orange/10 transition-colors">
+                        <Mail size={14} className="text-muted" />
+                      </span>
+                      {revenda.email}
                     </a>
                   )}
                   {revenda?.endereco && (
-                    <p className="flex items-start gap-3 py-1.5 text-muted">
-                      <MapPin size={15} className="shrink-0 mt-0.5" /> {revenda.endereco}
-                    </p>
+                    <div className="flex items-start gap-3 py-2.5 text-sm text-muted">
+                      <span className="w-8 h-8 rounded-lg bg-sand flex items-center justify-center shrink-0">
+                        <MapPin size={14} />
+                      </span>
+                      <span className="pt-1.5">{revenda.endereco}</span>
+                    </div>
                   )}
                   {revenda?.horario_funcionamento && (
-                    <p className="flex items-start gap-3 py-1.5 text-muted">
-                      <Clock size={15} className="shrink-0 mt-0.5" /> {revenda.horario_funcionamento}
-                    </p>
+                    <div className="flex items-start gap-3 py-2.5 text-sm text-muted">
+                      <span className="w-8 h-8 rounded-lg bg-sand flex items-center justify-center shrink-0">
+                        <Clock size={14} />
+                      </span>
+                      <span className="pt-1.5">{revenda.horario_funcionamento}</span>
+                    </div>
                   )}
                 </div>
 
                 {(revenda?.instagram || revenda?.facebook || revenda?.website) && (
-                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-line">
+                  <div className="flex items-center gap-2 mt-5 pt-5 border-t border-line">
                     {revenda.instagram && (
-                      <a href={`https://instagram.com/${revenda.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-sand flex items-center justify-center text-muted hover:text-ink hover:bg-line transition-colors">
-                        <Instagram size={15} />
+                      <a href={`https://instagram.com/${revenda.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-sand flex items-center justify-center text-muted hover:text-ink hover:bg-line transition-all duration-200">
+                        <Instagram size={16} />
                       </a>
                     )}
                     {revenda.facebook && (
-                      <a href={`https://facebook.com/${revenda.facebook}`} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-sand flex items-center justify-center text-muted hover:text-ink hover:bg-line transition-colors">
-                        <Facebook size={15} />
+                      <a href={`https://facebook.com/${revenda.facebook}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-sand flex items-center justify-center text-muted hover:text-ink hover:bg-line transition-all duration-200">
+                        <Facebook size={16} />
                       </a>
                     )}
                     {revenda.website && (
-                      <a href={revenda.website.startsWith("http") ? revenda.website : `https://${revenda.website}`} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-sand flex items-center justify-center text-muted hover:text-ink hover:bg-line transition-colors">
-                        <Globe size={15} />
+                      <a href={revenda.website.startsWith("http") ? revenda.website : `https://${revenda.website}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-sand flex items-center justify-center text-muted hover:text-ink hover:bg-line transition-all duration-200">
+                        <Globe size={16} />
                       </a>
                     )}
                   </div>
                 )}
               </div>
             </div>
-          </div>
+          </aside>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
 function SpecCard({ icon, label, value }) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-sand/40 border border-line/50">
-      <div className="text-muted shrink-0">{icon}</div>
-      <div>
-        <p className="text-[11px] text-muted leading-tight">{label}</p>
-        <p className="text-sm font-600 text-ink leading-tight mt-0.5">{value}</p>
+    <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-sand/50 border border-line/50 hover:bg-sand hover:border-line transition-all duration-200">
+      <div className="flex items-center gap-2">
+        <span className="text-muted">{icon}</span>
+        <span className="text-xs text-muted font-500">{label}</span>
       </div>
+      <p className="text-sm font-600 text-ink leading-tight pl-[26px]">{value}</p>
     </div>
   );
 }
