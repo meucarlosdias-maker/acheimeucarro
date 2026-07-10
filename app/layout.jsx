@@ -1,4 +1,5 @@
 import "./globals.css";
+import Footer from "@/components/Footer";
 
 export const metadata = {
   title: "Achei Meu Carro — Carros das revendas de Joinville",
@@ -9,7 +10,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
-      <body className="font-sans bg-sand text-ink">{children}</body>
+      <body className="font-sans bg-sand text-ink flex flex-col min-h-screen">
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </body>
     </html>
   );
 }
