@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createClient } from "@/lib/supabaseServer";
 import { Plus, Edit, CheckCircle, XCircle, Clock } from "lucide-react";
 
@@ -13,7 +12,7 @@ const STATUS_BADGE = {
 };
 
 export default async function RevendasPage() {
-  const safeClient = supabaseAdmin || createClient();
+  const safeClient = createClient();
 
   const { data: revendas } = await safeClient
     .from("revendas")

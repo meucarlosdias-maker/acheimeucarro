@@ -1,11 +1,10 @@
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createClient } from "@/lib/supabaseServer";
 import { Building2, Car, MapPin, AlertTriangle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 async function getDados() {
-  const safeClient = supabaseAdmin || createClient();
+  const safeClient = createClient();
 
   const [revendas, veiculos, cidades] = await Promise.all([
     safeClient.from("revendas").select("id, plano, status, plano_fim"),

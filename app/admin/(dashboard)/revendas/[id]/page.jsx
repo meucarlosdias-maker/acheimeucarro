@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createClient } from "@/lib/supabaseServer";
-import AdminSetupMessage from "@/components/AdminSetupMessage";
 import { Edit, Car, CheckCircle, XCircle, Clock, Eye, EyeOff, MapPin, Phone, Mail, Globe, User, Building2, CreditCard, AlertTriangle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -15,8 +13,7 @@ const STATUS_BADGE = {
 };
 
 export default async function DetalhesRevendaPage({ params }) {
-  const safeClient = supabaseAdmin || createClient();
-  if (!safeClient) return <AdminSetupMessage />;
+  const safeClient = createClient();
 
   const id = params.id;
 

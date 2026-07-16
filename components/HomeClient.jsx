@@ -12,21 +12,30 @@ import {
   ArrowRight,
   Fuel,
   Car,
+  LayoutGrid,
+  Caravan,
+  Bus,
+  Truck,
+  Package,
+  Send,
   Instagram,
   Heart,
   MessageCircle,
 } from "lucide-react";
 
 const CATEGORIAS = ["Todos", "Sedã", "Hatch", "SUV", "Picape", "Utilitário"];
-const FAIXAS = [
-  { label: "Qualquer preço", min: 0, max: Infinity },
-  { label: "Até R$ 70.000", min: 0, max: 70000 },
-  { label: "R$ 70.000 – R$ 120.000", min: 70000, max: 120000 },
-  { label: "Acima de R$ 120.000", min: 120000, max: Infinity },
-];
 
 const FALLBACK_FOTO =
   "https://images.unsplash.com/photo-1494905998402-395d579af36f?q=80&w=800&auto=format&fit=crop";
+
+const ICONES_CATEGORIA = {
+  Todos: LayoutGrid,
+  Sedã: Car,
+  Hatch: Caravan,
+  SUV: Bus,
+  Picape: Truck,
+  Utilitário: Package,
+};
 
 function formatPreco(v) {
   return Number(v).toLocaleString("pt-BR", {
@@ -43,8 +52,11 @@ function fotoCapa(veiculo) {
 
 export default function HomeClient({ veiculos, marcas, banners, bannersPromo }) {
   const [categoria, setCategoria] = useState("Todos");
-  const [marca, setMarca] = useState("Todas as marcas");
-  const [faixaIdx, setFaixaIdx] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [nomeLead, setNomeLead] = useState("");
+  const [modeloLead, setModeloLead] = useState("");
+  const [anoLead, setAnoLead] = useState("");
   const [slide, setSlide] = useState(0);
 
   const slides = banners && banners.length > 0 ? banners : [];
@@ -62,14 +74,14 @@ export default function HomeClient({ veiculos, marcas, banners, bannersPromo }) 
   const current = slides[slide];
 
   const resultados = useMemo(() => {
-    const faixa = FAIXAS[faixaIdx];
     return (veiculos || []).filter((v) => {
       const okCategoria = categoria === "Todos" || v.categoria === categoria;
-      const okMarca = marca === "Todas as marcas" || v.marca?.nome === marca;
-      const okFaixa = v.preco >= faixa.min && v.preco <= faixa.max;
-      return okCategoria && okMarca && okFaixa;
+      const okModelo = !searchTerm ||
+        v.modelo?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        v.marca?.nome?.toLowerCase().includes(searchTerm.toLowerCase());
+      return okCategoria && okModelo;
     });
-  }, [veiculos, categoria, marca, faixaIdx]);
+  }, [veiculos, categoria, searchTerm]);
 
   return (
     <div className="min-h-screen w-full">
@@ -194,41 +206,26 @@ export default function HomeClient({ veiculos, marcas, banners, bannersPromo }) 
 
         {/* SEARCH CARD - floating */}
         <div className="max-w-4xl mx-auto px-6 -mt-16 relative z-10">
-          <div className="bg-white rounded-2xl shadow-xl p-5 md:p-6 grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div className="flex items-center gap-2 rounded-lg px-3 py-3 border border-line">
-              <MapPin size={18} className="text-brand-orange" />
-              <div className="flex flex-col">
-                <span className="text-xs text-muted">Cidade</span>
-                <span className="text-sm font-600">Joinville, SC</span>
+          <div className="bg-white rounded-2xl shadow-xl p-5 md:p-6">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="flex-1 relative">
+                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") setSearchTerm(searchInput); }}
+                  placeholder="Buscar por modelo..."
+                  className="w-full rounded-lg pl-10 pr-4 py-3 border border-line text-sm font-500 text-ink focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange"
+                />
               </div>
+              <button
+                onClick={() => setSearchTerm(searchInput)}
+                className="rounded-lg font-600 text-sm flex items-center justify-center gap-2 px-8 py-3 bg-brand-orange text-white hover:opacity-90 transition-opacity whitespace-nowrap"
+              >
+                <Search size={16} /> Buscar
+              </button>
             </div>
-
-            <select
-              value={marca}
-              onChange={(e) => setMarca(e.target.value)}
-              className="rounded-lg px-3 py-3 border border-line text-sm font-500 text-ink"
-            >
-              <option>Todas as marcas</option>
-              {marcas.map((m) => (
-                <option key={m.id}>{m.nome}</option>
-              ))}
-            </select>
-
-            <select
-              value={faixaIdx}
-              onChange={(e) => setFaixaIdx(Number(e.target.value))}
-              className="rounded-lg px-3 py-3 border border-line text-sm font-500 text-ink"
-            >
-              {FAIXAS.map((f, i) => (
-                <option key={f.label} value={i}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-
-            <button className="rounded-lg font-600 text-sm flex items-center justify-center gap-2 py-3 bg-brand-orange text-white hover:opacity-90 transition-opacity">
-              <Search size={16} /> Buscar carros
-            </button>
           </div>
         </div>
       </section>
@@ -271,21 +268,24 @@ export default function HomeClient({ veiculos, marcas, banners, bannersPromo }) 
       {/* CATEGORIAS + RESULTADOS */}
       <section className="max-w-6xl mx-auto px-6 pt-14 pb-6">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          <h2 className="font-display font-700 text-2xl text-navy-deep">Recém-chegados em Joinville</h2>
+          <h2 className="font-display font-700 text-2xl text-navy-deep">Adicionados Recentemente</h2>
           <div className="flex gap-2 flex-wrap">
-            {CATEGORIAS.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setCategoria(cat)}
-                className={`text-sm font-600 px-4 py-2 rounded-full border transition-colors ${
-                  categoria === cat
-                    ? "bg-navy-deep text-white border-navy-deep"
-                    : "bg-white text-navy-deep border-line"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            {CATEGORIAS.map((cat) => {
+              const Icone = ICONES_CATEGORIA[cat];
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setCategoria(cat)}
+                  className={`text-sm font-600 px-4 py-2 rounded-full border transition-colors flex items-center gap-1.5 ${
+                    categoria === cat
+                      ? "bg-navy-deep text-white border-navy-deep"
+                      : "bg-white text-navy-deep border-line"
+                  }`}
+                >
+                  <Icone size={14} /> {cat}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -336,20 +336,53 @@ export default function HomeClient({ veiculos, marcas, banners, bannersPromo }) 
         )}
       </section>
 
-      {/* CTA REVENDAS */}
+      {/* LEAD FORM - BUSCA PERSONALIZADA */}
       <section className="max-w-6xl mx-auto px-6 py-10">
-        <div className="rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 bg-navy-deep">
-          <div>
+        <div className="rounded-2xl p-8 md:p-10 bg-navy-deep">
+          <div className="max-w-xl mx-auto text-center mb-6">
             <h3 className="font-display font-700 text-white text-xl md:text-2xl mb-2">
-              Sua revenda ainda não está no Achei Meu Carro?
+              Não achou o carro que procura?
             </h3>
             <p className="text-sm md:text-base text-white/70">
-              Cadastre seu estoque e apareça para quem já está procurando carro em Joinville agora.
+              Deixe informações do carro que você deseja. Entraremos em contato pelo WhatsApp com uma busca personalizada.
             </p>
           </div>
-          <button className="whitespace-nowrap font-600 text-sm px-6 py-3 rounded-lg flex items-center gap-2 bg-brand-orange text-white hover:opacity-90 transition-opacity">
-            Quero anunciar minha revenda <ArrowRight size={16} />
-          </button>
+          <div className="max-w-lg mx-auto flex flex-col gap-3">
+            <input
+              type="text"
+              value={nomeLead}
+              onChange={(e) => setNomeLead(e.target.value)}
+              placeholder="Nome do carro (ex: Honda Civic)"
+              className="rounded-lg px-4 py-3 border border-white/20 bg-white/10 text-white placeholder:text-white/50 text-sm font-500 focus:outline-none focus:ring-2 focus:ring-brand-orange/30"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                type="text"
+                value={modeloLead}
+                onChange={(e) => setModeloLead(e.target.value)}
+                placeholder="Modelo"
+                className="rounded-lg px-4 py-3 border border-white/20 bg-white/10 text-white placeholder:text-white/50 text-sm font-500 focus:outline-none focus:ring-2 focus:ring-brand-orange/30"
+              />
+              <input
+                type="text"
+                value={anoLead}
+                onChange={(e) => setAnoLead(e.target.value)}
+                placeholder="Ano"
+                className="rounded-lg px-4 py-3 border border-white/20 bg-white/10 text-white placeholder:text-white/50 text-sm font-500 focus:outline-none focus:ring-2 focus:ring-brand-orange/30"
+              />
+            </div>
+            <button
+              onClick={() => {
+                const msg = encodeURIComponent(
+                  `Olá! Estou procurando um carro:\n\nNome: ${nomeLead}\nModelo: ${modeloLead}\nAno: ${anoLead}\n\nPodem me ajudar?`
+                );
+                window.open(`https://wa.me/5547999990000?text=${msg}`, "_blank");
+              }}
+              className="font-600 text-sm px-6 py-3 rounded-lg flex items-center justify-center gap-2 bg-brand-orange text-white hover:opacity-90 transition-opacity"
+            >
+              Enviar busca personalizada <Send size={16} />
+            </button>
+          </div>
         </div>
       </section>
 
@@ -385,6 +418,23 @@ export default function HomeClient({ veiculos, marcas, banners, bannersPromo }) 
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* CTA REVENDAS */}
+      <section className="max-w-6xl mx-auto px-6 py-10">
+        <div className="rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 bg-navy-deep">
+          <div>
+            <h3 className="font-display font-700 text-white text-xl md:text-2xl mb-2">
+              Sua revenda ainda não está no Achei Meu Carro?
+            </h3>
+            <p className="text-sm md:text-base text-white/70">
+              Cadastre seu estoque e apareça para quem já está procurando carro em Joinville agora.
+            </p>
+          </div>
+          <button className="whitespace-nowrap font-600 text-sm px-6 py-3 rounded-lg flex items-center gap-2 bg-brand-orange text-white hover:opacity-90 transition-opacity">
+            Quero anunciar minha revenda <ArrowRight size={16} />
+          </button>
         </div>
       </section>
     </div>

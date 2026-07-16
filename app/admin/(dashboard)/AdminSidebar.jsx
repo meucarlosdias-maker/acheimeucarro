@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabaseBrowser";
 import {
   LayoutDashboard,
   Building2,
+  Car,
   MapPin,
   Image,
   LogOut,
@@ -14,6 +15,7 @@ import {
 const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/revendas", label: "Revendas", icon: Building2 },
+  { href: "/admin/veiculos", label: "Veículos", icon: Car },
   { href: "/admin/banners", label: "Banners", icon: Image },
   { href: "/admin/cidades", label: "Cidades", icon: MapPin },
 ];

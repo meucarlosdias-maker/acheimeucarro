@@ -1,13 +1,10 @@
 import RevendaForm from "../RevendaForm";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createClient } from "@/lib/supabaseServer";
-import AdminSetupMessage from "@/components/AdminSetupMessage";
 
 export const dynamic = "force-dynamic";
 
 export default async function NovaRevendaPage() {
-  const safeClient = supabaseAdmin || createClient();
-  if (!safeClient) return <AdminSetupMessage />;
+  const safeClient = createClient();
 
   const { data: cidades } = await safeClient
     .from("cidades")

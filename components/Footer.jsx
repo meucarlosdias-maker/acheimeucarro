@@ -39,8 +39,7 @@ export default function Footer() {
           </div>
           <div>
             <p className="font-600 text-sm mb-3 text-white">Para revendas</p>
-            <Link href="/revenda/cadastro" className="block text-sm mb-1 text-white/75 hover:text-white transition-colors">Anunciar minha revenda</Link>
-            <Link href="/revenda/login" className="block text-sm text-white/75 hover:text-white transition-colors">Entrar no painel</Link>
+            <Link href="/revenda/cadastro" className="block text-sm text-white/75 hover:text-white transition-colors">Anunciar minha revenda</Link>
           </div>
           <div>
             <p className="font-600 text-sm mb-3 text-white">Ajuda</p>
