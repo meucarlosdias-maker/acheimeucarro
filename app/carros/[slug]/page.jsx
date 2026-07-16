@@ -1,11 +1,12 @@
 import { getVeiculoPorSlug, getVeiculosPorModelo } from "@/lib/queries";
 import {
-  ChevronLeft, Gauge, Calendar, Fuel, Car, MapPin, Phone, Mail,
+  ChevronLeft, MapPin, Phone, Mail,
   MessageCircle, Globe, Instagram, Facebook, Clock, Heart, Share2,
-  CheckCircle, ArrowRight, Zap, Palette, LayoutGrid,
+  CheckCircle, Car,
 } from "lucide-react";
 import Link from "next/link";
 import ImageGallery from "./ImageGallery";
+import CaracteristicasVeiculo from "@/components/CaracteristicasVeiculo";
 
 export const dynamic = "force-dynamic";
 
@@ -100,19 +101,7 @@ export default async function CarroPage({ params }) {
             </div>
 
             <section className="bg-white rounded-2xl border border-line p-5 sm:p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="w-1 h-5 bg-brand-orange rounded-full" />
-                <h2 className="font-display font-700 text-base text-navy-deep">Especificações</h2>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                <SpecCard icon={<Calendar size={16} />} label="Ano" value={`${veiculo.ano_fab}/${veiculo.ano_modelo}`} />
-                <SpecCard icon={<Gauge size={16} />} label="Quilometragem" value={`${Number(veiculo.km).toLocaleString("pt-BR")} km`} />
-                <SpecCard icon={<Fuel size={16} />} label="Combustível" value={veiculo.combustivel || "—"} />
-                <SpecCard icon={<Zap size={16} />} label="Câmbio" value={veiculo.cambio || "—"} />
-                {veiculo.cor && <SpecCard icon={<Palette size={16} />} label="Cor" value={veiculo.cor} />}
-                {veiculo.categoria && <SpecCard icon={<LayoutGrid size={16} />} label="Categoria" value={veiculo.categoria} />}
-                {veiculo.portas && <SpecCard icon={<Car size={16} />} label="Portas" value={`${veiculo.portas}`} />}
-              </div>
+              <CaracteristicasVeiculo veiculo={veiculo} />
             </section>
 
             {veiculo.descricao && (
@@ -286,14 +275,3 @@ export default async function CarroPage({ params }) {
   );
 }
 
-function SpecCard({ icon, label, value }) {
-  return (
-    <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-sand/50 border border-line/50 hover:bg-sand hover:border-line transition-all duration-200">
-      <div className="flex items-center gap-2">
-        <span className="text-muted">{icon}</span>
-        <span className="text-xs text-muted font-500">{label}</span>
-      </div>
-      <p className="text-sm font-600 text-ink leading-tight pl-[26px]">{value}</p>
-    </div>
-  );
-}

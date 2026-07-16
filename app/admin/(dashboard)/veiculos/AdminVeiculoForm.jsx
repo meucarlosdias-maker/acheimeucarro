@@ -3,16 +3,31 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseBrowser";
+import AccordionSection from "@/components/AccordionSection";
+import {
+  CATEGORIAS, SITUACOES, TRACOES, DIRECOES, COMBUSTIVEIS, CAMBIOS, PORTAS,
+  SECOES_CARACTERISTICAS, mergeCaracteristicas,
+} from "@/lib/veiculoCampos";
+import { Settings, Shield, CheckSquare, Clock, Cpu, Zap, Sun, FileText } from "lucide-react";
 
-const CATEGORIAS = ["Sedã", "Hatch", "SUV", "Picape", "Utilitário"];
-const COMBUSTIVEIS = ["Flex", "Gasolina", "Etanol", "Diesel", "Elétrico", "Híbrido"];
-const CAMBIOS = ["Manual", "Automático", "Automatizado"];
+const secaoIcon = {
+  condicoes_comerciais: <CheckSquare size={16} />,
+  garantia: <Shield size={16} />,
+  situacao_campos: <Clock size={16} />,
+  seguranca: <Shield size={16} />,
+  conforto: <Settings size={16} />,
+  tecnologia: <Cpu size={16} />,
+  desempenho: <Zap size={16} />,
+  exterior: <Sun size={16} />,
+  documentacao: <FileText size={16} />,
+};
 
 export default function AdminVeiculoForm({ revendas, veiculo }) {
   const router = useRouter();
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState("");
+
   const [form, setForm] = useState({
     revenda_id: veiculo?.revenda_id || "",
     marca_nome: veiculo?.marca?.nome || "",
@@ -22,16 +37,23 @@ export default function AdminVeiculoForm({ revendas, veiculo }) {
     ano_modelo: veiculo?.ano_modelo || new Date().getFullYear(),
     km: veiculo?.km || "",
     preco: veiculo?.preco || "",
+    preco_promocional: veiculo?.preco_promocional || "",
     combustivel: veiculo?.combustivel || "",
     cambio: veiculo?.cambio || "",
     cor: veiculo?.cor || "",
+    cor_interna: veiculo?.cor_interna || "",
+    tracao: veiculo?.tracao || "",
+    tipo_direcao: veiculo?.tipo_direcao || "",
     portas: veiculo?.portas || 4,
+    lugares: veiculo?.lugares || "",
     categoria: veiculo?.categoria || "",
+    situacao: veiculo?.situacao || "",
     descricao: veiculo?.descricao || "",
     video_url: veiculo?.video_url || "",
     status: veiculo?.status || "ativo",
     slug: veiculo?.slug || "",
     fotos: veiculo?.fotos || [],
+    caracteristicas: mergeCaracteristicas(veiculo?.caracteristicas),
   });
 
   const [novaFoto, setNovaFoto] = useState("");
@@ -39,6 +61,19 @@ export default function AdminVeiculoForm({ revendas, veiculo }) {
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function toggleCaracteristica(cat, campo) {
+    setForm((prev) => ({
+      ...prev,
+      caracteristicas: {
+        ...prev.caracteristicas,
+        [cat]: {
+          ...prev.caracteristicas[cat],
+          [campo]: !prev.caracteristicas[cat]?.[campo],
+        },
+      },
+    }));
   }
 
   function addFoto() {
@@ -71,9 +106,7 @@ export default function AdminVeiculoForm({ revendas, veiculo }) {
     setErro("");
 
     try {
-      if (!form.revenda_id) {
-        throw new Error("Selecione uma revenda.");
-      }
+      if (!form.revenda_id) throw new Error("Selecione uma revenda.");
 
       const marca_id = await findOrCreate("marcas", { nome: form.marca_nome.trim() });
       const modelo_id = await findOrCreate("modelos", { nome: form.modelo_nome.trim(), marca_id });
@@ -82,6 +115,7 @@ export default function AdminVeiculoForm({ revendas, veiculo }) {
       const slugBase = `${form.marca_nome}-${form.modelo_nome}`
         .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
       const payload = {
         revenda_id: form.revenda_id,
         marca_id,
@@ -91,13 +125,20 @@ export default function AdminVeiculoForm({ revendas, veiculo }) {
         ano_modelo: Number(form.ano_modelo),
         km: Number(form.km),
         preco: Number(form.preco),
+        preco_promocional: form.preco_promocional ? Number(form.preco_promocional) : null,
         combustivel: form.combustivel,
         cambio: form.cambio,
         cor: form.cor,
+        cor_interna: form.cor_interna,
+        tracao: form.tracao,
+        tipo_direcao: form.tipo_direcao,
         portas: Number(form.portas),
+        lugares: form.lugares ? Number(form.lugares) : null,
         categoria: form.categoria,
+        situacao: form.situacao,
         descricao: form.descricao,
         video_url: form.video_url,
+        caracteristicas: form.caracteristicas,
         status: form.status,
         slug: form.slug || `${slugBase}-${Date.now()}`,
       };
@@ -130,6 +171,25 @@ export default function AdminVeiculoForm({ revendas, veiculo }) {
     }
   }
 
+  function renderCheckboxGrid(secao) {
+    const data = form.caracteristicas[secao.key] || {};
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+        {secao.itens.map((item) => (
+          <label key={item.campo} className="flex items-center gap-2.5 text-sm text-ink cursor-pointer select-none py-1.5 px-3 rounded-lg hover:bg-sand/50 transition-colors">
+            <input
+              type="checkbox"
+              checked={data[item.campo] === true}
+              onChange={() => toggleCaracteristica(secao.key, item.campo)}
+              className="w-4 h-4 rounded border-line text-brand-orange focus:ring-brand-orange/30"
+            />
+            {item.label}
+          </label>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* REVENDA */}
@@ -146,7 +206,7 @@ export default function AdminVeiculoForm({ revendas, veiculo }) {
         </div>
       </section>
 
-      {/* DADOS PRINCIPAIS */}
+      {/* DADOS BÁSICOS */}
       <section className="bg-white rounded-xl border border-line p-6">
         <h2 className="font-display font-700 text-lg text-navy-deep mb-4">Dados do Veículo</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -186,6 +246,10 @@ export default function AdminVeiculoForm({ revendas, veiculo }) {
             <input name="preco" type="number" step="0.01" value={form.preco} onChange={handleChange} required className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange" />
           </div>
           <div>
+            <label className="text-sm font-600 text-ink block mb-1">Preço Promocional (R$)</label>
+            <input name="preco_promocional" type="number" step="0.01" value={form.preco_promocional} onChange={handleChange} placeholder="Opcional" className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange" />
+          </div>
+          <div>
             <label className="text-sm font-600 text-ink block mb-1">Combustível</label>
             <select name="combustivel" value={form.combustivel} onChange={handleChange} className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange">
               <option value="">Selecione...</option>
@@ -204,16 +268,57 @@ export default function AdminVeiculoForm({ revendas, veiculo }) {
             <input name="cor" value={form.cor} onChange={handleChange} placeholder="Ex: Vermelho" className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange" />
           </div>
           <div>
+            <label className="text-sm font-600 text-ink block mb-1">Cor Interna</label>
+            <input name="cor_interna" value={form.cor_interna} onChange={handleChange} placeholder="Ex: Bege" className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange" />
+          </div>
+          <div>
+            <label className="text-sm font-600 text-ink block mb-1">Tração</label>
+            <select name="tracao" value={form.tracao} onChange={handleChange} className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange">
+              <option value="">Selecione...</option>
+              {TRACOES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-sm font-600 text-ink block mb-1">Tipo de Direção</label>
+            <select name="tipo_direcao" value={form.tipo_direcao} onChange={handleChange} className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange">
+              <option value="">Selecione...</option>
+              {DIRECOES.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <div>
             <label className="text-sm font-600 text-ink block mb-1">Portas</label>
             <select name="portas" value={form.portas} onChange={handleChange} className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange">
-              <option value={2}>2</option>
-              <option value={4}>4</option>
+              {PORTAS.map((p) => <option key={p} value={p}>{p}</option>)}
             </select>
+          </div>
+          <div>
+            <label className="text-sm font-600 text-ink block mb-1">Lugares</label>
+            <input name="lugares" type="number" value={form.lugares} onChange={handleChange} placeholder="Ex: 5" min={1} max={9} className="w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-brand-orange" />
+          </div>
+          <div>
+            <label className="text-sm font-600 text-ink block mb-1">Situação do Veículo</label>
+            <div className="flex items-center gap-4 pt-1.5">
+              {SITUACOES.map((s) => (
+                <label key={s} className="flex items-center gap-1.5 text-sm text-ink cursor-pointer">
+                  <input type="radio" name="situacao" value={s} checked={form.situacao === s} onChange={handleChange} className="text-brand-orange focus:ring-brand-orange/30" />
+                  {s}
+                </label>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* DESCRIÇÃO E VÍDEO */}
+      {/* SEÇÕES DE CARACTERÍSTICAS (ACCORDION) */}
+      <section className="bg-white rounded-xl border border-line divide-y divide-line">
+        {SECOES_CARACTERISTICAS.map((secao) => (
+          <AccordionSection key={secao.key} titulo={secao.titulo} icon={secaoIcon[secao.key]}>
+            {renderCheckboxGrid(secao)}
+          </AccordionSection>
+        ))}
+      </section>
+
+      {/* DESCRIÇÃO E MÍDIA */}
       <section className="bg-white rounded-xl border border-line p-6">
         <h2 className="font-display font-700 text-lg text-navy-deep mb-4">Descrição e Mídia</h2>
         <div className="space-y-4">
@@ -246,9 +351,7 @@ export default function AdminVeiculoForm({ revendas, veiculo }) {
           {(form.fotos || []).map((foto, idx) => (
             <div key={idx} className="relative group aspect-[4/3] rounded-lg overflow-hidden border border-line bg-sand">
               <img src={foto.url} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
-              <button type="button" onClick={() => removeFoto(idx)} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                ×
-              </button>
+              <button type="button" onClick={() => removeFoto(idx)} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
               {idx === 0 && <span className="absolute bottom-1 left-1 text-[10px] font-600 bg-navy-deep text-white px-1.5 py-0.5 rounded">Capa</span>}
             </div>
           ))}
